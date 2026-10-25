@@ -1,0 +1,359 @@
+{
+  "info": {
+    "_postman_id": "7a35e98f-0fd4-4bc6-bf10-nest-sms-gateway",
+    "name": "Nest Nepal - Mini SMS Gateway API",
+    "description": "Postman test suite for Nest Nepal Backend Developer Intern Task (Mini SMS Gateway). Covers Auth, Concurrency, Normalization, Multilingual Segments, Failover, Refunds, and Health Audits.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Auth",
+      "item": [
+        {
+          "name": "01. Register (New User)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"new_user@nestnepal.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02. Login (Existing Seed User)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.data.token);",
+                  "    console.log('JWT Token successfully stored to collection variable.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@nestnepal.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Wallet",
+      "item": [
+        {
+          "name": "01. Get Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "balance"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. SMS Send",
+      "item": [
+        {
+          "name": "01. Send SMS - Single Recipient (GSM-7 Standard)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"9841234567\"],\n  \"message\": \"Welcome to Nest SMS Gateway! This is a single part GSM-7 message.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02. Send SMS - Normalized Prefixes (+977 and 977)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"+9779801122334\", \"9779761234567\", \"9849999999\"],\n  \"message\": \"Prefix normalisation test message.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03. Send SMS - Unicode (Nepali Devanagari & Emojis)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"9841234567\"],\n  \"message\": \"नमस्ते, नेस्ट नेपाल एस.एम.एस गेटवेमा स्वागत छ! 🚀\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04. Send SMS - Multipart GSM (>160 characters, 2 parts)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"9841234567\"],\n  \"message\": \"This is an extended GSM-7 message created specifically to exceed the single segment threshold of 160 characters. Because it exceeds 160 characters, it will be split into segments of 153 characters and cost exactly 2 credits per recipient.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05. Send SMS - Invalid Number Validation (Rejection)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"9841234567\", \"9612345678\", \"98412345\"],\n  \"message\": \"This request should be rejected due to invalid numbers.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "send"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. Reporting & Logs",
+      "item": [
+        {
+          "name": "01. Get Logs - Default Paginated",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/logs?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "logs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02. Get Logs - Filter by Status (SENT)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/logs?status=SENT&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "logs"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SENT"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03. Get Logs - Filter by Recipient Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sms/logs?recipient=9841234567&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sms", "logs"],
+              "query": [
+                {
+                  "key": "recipient",
+                  "value": "9841234567"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05. Provider Health",
+      "item": [
+        {
+          "name": "01. Get Route Health Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/routes/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "routes", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
