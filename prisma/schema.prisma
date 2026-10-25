@@ -1,0 +1,66 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  wallet    Wallet?
+
+  @@map("users")
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  credits   Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wallets")
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model MessageLog {
+  id           String        @id @default(uuid())
+  userId       String        @map("user_id")
+  recipient    String
+  message      String
+  encoding     String
+  segments     Int
+  cost         Int
+  status       MessageStatus @default(PENDING)
+  routeUsed    String?       @map("route_used")
+  failureTrail String?       @map("failure_trail")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([recipient])
+  @@map("message_logs")
+}
+
+model RouteAudit {
+  id        String   @id @default(uuid())
+  routeName String   @map("route_name")
+  isSuccess Boolean  @map("is_success")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([routeName, createdAt])
+  @@map("route_audits")
+}

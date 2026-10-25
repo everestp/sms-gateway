@@ -1,0 +1,3 @@
+npm notice run ts-node prisma/seed.ts
+Seeded test user: test@nestnepal.com (Wallet credits: 20)
+Credentials: Email: test@nestnepal.com | Password: Password123!
